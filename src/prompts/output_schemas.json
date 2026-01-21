@@ -1,0 +1,22 @@
+{
+  "version": "v1-friend",
+  "summary": "string",
+  "feelings": ["string"],
+  "needs": ["string"],
+  "possible_interpretations": ["string"],
+  "actions": [
+    {
+      "title": "string",
+      "description": "string",
+      "intensity": "low|medium|high",
+      "why_this": "string?"
+    }
+  ],
+  "message_templates": [
+    {
+      "situation": "string",
+      "text": "string"
+    }
+  ],
+  "cautions": ["string"]
+}
