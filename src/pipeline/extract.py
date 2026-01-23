@@ -61,7 +61,7 @@ def extract_context(req: FriendSolveRequest) -> ExtractedContext:
         if any(k in s for k in issue_keywords):
             issues.append(s)
     if not issues:
-        issues = ["핵심 이슈룰 더 추가해주세요."]
+        issues = ["핵심 이슈를 더 추가해주세요."]
 
     return ExtractedContext(
         situation=situation,
