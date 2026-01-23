@@ -13,14 +13,14 @@ class FriendSolveRequest(BaseModel):
     goal: GoalType = Field(default="resolve", description="원하는 방향")
     tone: ToneType = Field(default="warm", description="답변 톤")
 
-class ActionItme(BaseModel):
+class ActionItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: str = Field(..., min_length=2, max_length=60)
     description: str = Field(..., min_length=5, max_length=300)
     intensity: Literal["low", "medium", "high"] = Field(default="low")
     why_this: Optional[str] = Field(default=None, max_length=200)
 
-class MessageTemplete(BaseModel):
+class MessageTemplate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     situration: str = Field(..., min_length=2, max_length=40)
     text: str = Field(..., min_length=5, max_length=400)
@@ -39,7 +39,7 @@ class FriendSolveResponse(BaseModel):
     feelings: List[str] = Field(default_factory=list)
     needs: List[str] = Field(default_factory=list)
     possible_interpretations: List[str] = Field(default_factory=list)
-    actions: List[ActionItme] = Field(..., min_items=1, max_items=6)
-    message_templates: List[MessageTemplete] = Field(default_factory=list, max_items=5)
+    actions: List[ActionItem] = Field(..., min_items=1, max_items=6)
+    message_templates: List[MessageTemplate] = Field(default_factory=list, max_items=5)
     cautions: List[str] = Field(default_factory=list)
     safety: SafetyResult = Field(default_factory=SafetyResult)
