@@ -1,8 +1,7 @@
 from __future__ import annotations
-import json
+import json, httpx
 from pathlib import Path
 from typing import Any, Dict
-import httpx
 
 from src.config.settings import settings
 from src.pipeline.extract import ExtractedContext
