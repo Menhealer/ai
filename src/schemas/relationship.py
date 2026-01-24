@@ -34,7 +34,7 @@ class SafetyResult(BaseModel):
 class FriendSolveResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: str = Field(default="v1-friend")
-    created_at: datetime = Field(default_factory=datetime.datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     summary: str = Field(..., min_length=10, max_length=500)
     feelings: List[str] = Field(default_factory=list)
     needs: List[str] = Field(default_factory=list)

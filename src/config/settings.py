@@ -10,6 +10,6 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS: int = 900
     LOG_DIR: str = "logs"
     LOG_FILE: str = "ai.log"
-    LOG_LEVEL: set = "INFO"
+    LOG_LEVEL: str = "INFO"
 
 settings = Settings()
