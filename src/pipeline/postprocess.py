@@ -4,7 +4,7 @@ import json, re
 from typing import Any, Dict
 from pydantic import ValidationError
 
-from src.schemas.relationship import FriendSolveResponse
+from src.schemas.relationship import FriendSummaryResponse, FriendSolutionResponse
 
 def _extract_json_lbject(text: str) -> str:
     text = text.strip()
@@ -21,12 +21,22 @@ def _basic_repair(s: str) -> str:
     s = re.sub(r"[\x00-\x1f\x7f]", "", s)
     return s
 
-def parse_and_validate(raw: str) -> FriendSolveResponse:
+def parse_summary(raw: str) -> FriendSummaryResponse:
     json_text = _extract_json_lbject(raw)
     try:
         data: Dict[str, Any] = json.loads(json_text)
-        return FriendSolveResponse.model_validate(data)
+        return FriendSummaryResponse.model_validate(data)
     except (json.JSONDecodeError, ValidationError):
         repaired = _basic_repair(json_text)
         data2: Dict[str, Any] = json.loads(repaired)
-        return FriendSolveResponse.model_validate(data2)
+        return FriendSummaryResponse.model_validate(data2)
+
+def parse_solution(raw: str) -> FriendSolutionResponse:
+    json_text = _extract_json_lbject(raw)
+    try:
+        data: Dict[str, Any] = json.loads(json_text)
+        return FriendSolutionResponse.model_validate(data)
+    except (json.JSONDecodeError, ValidationError):
+        repaired = _basic_repair(json_text)
+        data2: Dict[str, Any] = json.loads(repaired)
+        return FriendSolutionResponse.model_validate(data2)
