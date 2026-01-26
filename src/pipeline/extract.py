@@ -1,7 +1,7 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from src.schemas.relationship import FriendSolutionRequest, FriendSummaryRequest
 
@@ -14,6 +14,7 @@ class ExtractedContext:
     friend_alias: Optional[str]
     goal: str
     tone: str
+    summary: Optional[Dict[str, Any]] = None
 
 _FEELING_HINTS = [
     ("서운", "서운함"),
@@ -70,7 +71,8 @@ def extract_solution(req: FriendSolutionRequest) -> ExtractedContext:
         issues=issues[:5],
         friend_alias=req.friend_alias,
         goal=req.goal,
-        tone=req.tone
+        tone=req.tone,
+        summary=req.summary.model_dump() if req.summary else None
     )
 
 def extract_summary(req: FriendSummaryRequest) -> ExtractedContext:

@@ -9,10 +9,10 @@ from src.safety.rules import check_safety
 from src.safety.escalation_summary import build_summary_escalation
 from src.safety.escalation_solution import build_solution_escalation
 from src.pipeline.extract import extract_summary, extract_solution
-from src.schemas.relationship import FriendSolutionResponse, FriendSolutionRequest, FriendSummaryRequest, FriendSummaryResponse
 from src.pipeline.generate_summary import call_llm_summary
 from src.pipeline.generate_solution import call_llm_solution
 from src.pipeline.postprocess import parse_solution, parse_summary
+from src.schemas.relationship import FriendSolutionResponse, FriendSolutionRequest, FriendSummaryRequest, FriendSummaryResponse
 
 from src.config.settings import settings
 from src.utils.logging import setup_logging, attach_request_id_filter
@@ -64,9 +64,6 @@ async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummar
         ctx = extract_summary(req)
         logger.info("extracted context", extra={"request_id": rid})
 
-        if hasattr(ctx, "model_dump"):
-            ctx = ctx.model_dump()
-
         raw = await call_llm_summary(ctx)
         logger.info("llm response received", extra={"request_id": rid})
 
@@ -91,9 +88,6 @@ async def solution(req: FriendSolutionRequest, request: Request) -> FriendSoluti
     try:
         ctx = extract_solution(req)
         logger.info("extracted context", extra={"request_id": rid})
-
-        if hasattr(ctx, "model_dump"):
-            ctx = ctx.model_dump()
 
         raw = await call_llm_solution(ctx)
         logger.info("llm response received", extra={"request_id": rid})
