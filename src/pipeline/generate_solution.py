@@ -10,7 +10,7 @@ PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "friend_solution
 def _load_prompt() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8")
 
-async def call_llm_soltution(payload: Dict[str, Any]) -> str:
+async def call_llm_solution(payload: Dict[str, Any]) -> str:
     system_prompt = _load_prompt()
     user_content = json.dumps(payload, ensure_ascii=False)
     

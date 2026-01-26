@@ -34,6 +34,6 @@ class RequestIDFilter(logging.Filter):
             record.request_id = "-"
         return True
 
-def  attack_request_id_filter() -> None:
+def  attach_request_id_filter() -> None:
     root = logging.getLogger()
     root.addFilter(RequestIDFilter())
