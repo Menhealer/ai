@@ -52,7 +52,7 @@ def extract_solution(req: FriendSolutionRequest) -> ExtractedContext:
     needs = _guess_list(text, _NEED_HINTS)
 
     issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
-    sentences = re.split("r[.!?\n+], text")
+    sentences = re.split("r[.!?\n+]", text)
     issues = []
     for s in sentences:
         s = s.strip()
