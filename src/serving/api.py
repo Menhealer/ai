@@ -5,12 +5,14 @@ import logging, uuid
 from time import perf_counter
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.schemas.relationship import FriendSolveRequest, FriendSolveResponse
 from src.safety.rules import check_safety
-from src.safety.escalation import build_escalation_response
-from src.pipeline.extract import extract_context
-from src.pipeline.generate_advice import call_llm_generate
-from src.pipeline.postprocess import parse_and_validate
+from src.safety.escalation import build_solution_response
+from src.safety.escalation import build_summary_response
+from src.pipeline.extract import extract_summary, extract_solution
+from src.schemas.relationship import FriendSolutionResponse, FriendSolutionRequest, FriendSummaryRequest, FriendSummaryResponse
+from src.pipeline.generate_summary import call_llm_summary
+from src.pipeline.generate_solution import call_llm_soltution
+from src.pipeline.postprocess import parse_solution, parse_summary
 
 from src.config.settings import settings
 from src.utils.logging import setup_logging, attack_request_id_filter
@@ -48,26 +50,50 @@ app.add_middleware(RequestIDMiddleware)
 async def health():
     return {"ok": True}
 
-@app.post("/solve", response_model=FriendSolveResponse)
-async def solve(req: FriendSolveRequest, request: Request) -> FriendSolveResponse:
+@app.post("/summarize", response_model=FriendSummaryResponse)
+async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummaryResponse:
     rid = request.state.request_id
-    logger.info("solve called", extra={"request_id": rid})
+    logger.info("summarize called", extra={"request_id": rid})
 
     safety = check_safety(req.text)
     if safety.flagged:
         logger.warning(f"safety flagged: {safety.categories}", extra={"request_id": rid})
-        return build_escalation_response(req, safety)
+        return build_summary_response(req, safety)
     
     try:
-        ctx = extract_context(req)
+        ctx = extract_summary(req)
         logger.info("extracted context", extra={"request_id": rid})
 
-        raw = await call_llm_generate(ctx)
+        raw = await call_llm_summary(ctx)
         logger.info("llm response received", extra={"request_id": rid})
 
-        result = parse_and_validate(raw)
+        result = parse_summary(raw)
         logger.info("response validated", extra={"request_id": rid})
         return result
     except Exception as e:
-        logger.exception("solve failed", extra={"request_id": rid})
-        raise HTTPException(status_code=500, detail=f"AI solve failed: {e}")
+        logger.exception("summarize failed", extra={"request_id": rid})
+        raise HTTPException(status_code=500, detail=f"AI summarize failed: {e}")
+
+@app.post("/solution", response_model=FriendSolutionResponse)
+async def solution(req: FriendSolutionRequest, request: Request) -> FriendSolutionResponse:
+    rid = request.state.request_id
+    logger.info("solution called", extra={"request_id": rid})
+
+    safety = check_safety(req.text)
+    if safety.flagged:
+        logger.warning(f"safety flagged: {safety.categories}", extra={"request_id": rid})
+        return build_solution_response(req, safety)
+    
+    try:
+        ctx = extract_solution(req)
+        logger.info("extracted context", extra={"request_id": rid})
+
+        raw = await call_llm_soltution(ctx)
+        logger.info("llm response received", extra={"request_id": rid})
+
+        result = parse_solution(raw)
+        logger.info("response validated", extra={"request_id": rid})
+        return result
+    except Exception as e:
+        logger.exception("solution failed", extra={"request_id": rid})
+        raise HTTPException(status_code=500, detail=f"AI solution failed: {e}")

@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from typing import List, Optional
 
-from src.schemas.relationship import FriendSolveRequest
+from src.schemas.relationship import FriendSolutionRequest, FriendSummaryRequest
 
 @dataclass
 class ExtractedContext:
@@ -42,7 +42,38 @@ def _guess_list(text: str, hints) -> List[str]:
             found.append(label)
     return list(dict.fromkeys(found))
 
-def extract_context(req: FriendSolveRequest) -> ExtractedContext:
+def extract_solution(req: FriendSolutionRequest) -> ExtractedContext:
+    text = req.text.strip()
+    situation = re.sub(r"\s+", " ", text)
+    if len(situation) > 350:
+        situation = situation[:350] + "..."
+
+    feelings = _guess_list(text, _FEELING_HINTS)
+    needs = _guess_list(text, _NEED_HINTS)
+
+    issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
+    sentences = re.split("r[.!?\n+], text")
+    issues = []
+    for s in sentences:
+        s = s.strip()
+        if not s:
+            continue
+        if any(k in s for k in issue_keywords):
+            issues.append(s)
+    if not issues:
+        issues = ["핵심 이슈를 더 추가해주세요."]
+
+    return ExtractedContext(
+        situation=situation,
+        feelings=feelings,
+        needs=needs,
+        issues=issues[:5],
+        friend_alias=req.friend_alias,
+        goal=req.goal,
+        tone=req.tone
+    )
+
+def extract_summary(req: FriendSummaryRequest) -> ExtractedContext:
     text = req.text.strip()
     situation = re.sub(r"\s+", " ", text)
     if len(situation) > 350:

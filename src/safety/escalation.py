@@ -4,14 +4,16 @@ from datetime import datetime, timezone
 from typing import List
 
 from src.schemas.relationship import (
-    FriendSolveRequest,
-    FriendSolveResponse,
+    FriendSolutionRequest,
+    FriendSolutionResponse,
+    FriendSummaryRequest,
+    FriendSummaryResponse,
     ActionItem,
     MessageTemplate,
     SafetyResult
 )
 
-def build_escalation_response(req: FriendSolveRequest, safety: SafetyResult) -> FriendSolveResponse:
+def build_solution_response(req: FriendSolutionRequest, safety: SafetyResult) -> FriendSolutionResponse:
     actions: List[ActionItem] = [
         ActionItem(
             title="지금은 안전을 먼저 확보하기",
@@ -50,7 +52,59 @@ def build_escalation_response(req: FriendSolveRequest, safety: SafetyResult) -> 
         "지금은 ‘정답 찾기’보다 ‘안전 확보’가 우선이에요",
     ]
 
-    return FriendSolveResponse(
+    return FriendSolutionResponse(
+        version="v1-friend",
+        created_at=datetime.now(timezone.utc),
+        summary="민감/위험 신호가 감지되어, 일반적인 관계 솔루션 대신 안전을 최우선으로 안내할게요.",
+        feelings=[],
+        needs=[],
+        possible_interpretations=[],
+        actions=actions,
+        message_templates=templates,
+        cautions=cautions,
+        safety=safety
+    )
+
+def build_summary_response(req: FriendSummaryRequest, safety: SafetyResult) -> FriendSummaryResponse:
+    actions: List[ActionItem] = [
+        ActionItem(
+            title="지금은 안전을 먼저 확보하기",
+            description="감정이 격해졌다면 잠시 자리를 이동하거나 주변에 사람을 두고, 즉시 행동으로 옮기기 전에 숨을 고르세요.",
+            intensity="low",
+            why_this="위험 신호가 보일 때는 관계 조언보다 안전이 우선이에요."
+        ),
+        ActionItem(
+            title="신뢰할 수 있는 사람/전문 도움에 연결하기",
+            description="혼자 감당하기 어렵다면 가까운 지인, 학교/직장 상담 창구, 지역 상담 서비스를 통해 도움을 요청하세요.",
+            intensity="medium",
+            why_this="지원이 있으면 충동적 선택을 줄이고 상황을 정리하기 쉬워요."
+        ),
+        ActionItem(
+            title="즉각적인 위험이면 긴급 도움을 요청하기",
+            description="지금 당장 자신이나 타인의 안전이 위협받는 상황이면 지역의 긴급 도움(응급/경찰/핫라인 등)을 이용하세요.",
+            intensity="high",
+            why_this="긴급 상황은 즉시 대응이 필요해요."
+        ),
+    ]
+
+    templates: List[MessageTemplate] = [
+        MessageTemplate(
+            situation="도움 요청",
+            text="지금 감정이 너무 벅차서 혼자 해결하기 어려워. 잠깐 통화하거나 같이 있어줄 수 있을까?"
+        ),
+        MessageTemplate(
+            situation="거리두기",
+            text="지금은 감정이 격해져서 대화를 이어가기 어렵다. 안전하게 진정한 뒤에 다시 이야기하고 싶어."
+        ),
+    ]
+
+    cautions = [
+        "상대에게 해를 주거나 스스로를 해치는 행동은 절대 하지 않기",
+        "상대를 추적하거나 위협하는 행동은 상황을 더 악화시키고 법적 문제로 이어질 수 있어요",
+        "지금은 ‘정답 찾기’보다 ‘안전 확보’가 우선이에요",
+    ]
+
+    return FriendSummaryResponse(
         version="v1-friend",
         created_at=datetime.now(timezone.utc),
         summary="민감/위험 신호가 감지되어, 일반적인 관계 솔루션 대신 안전을 최우선으로 안내할게요.",
