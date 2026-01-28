@@ -6,7 +6,16 @@ from typing import List, Optional, Dict, Any
 from src.schemas.relationship import FriendSolutionRequest, FriendSummaryRequest
 
 @dataclass
-class ExtractedContext:
+class SummaryContext:
+    situation: str
+    feelings: List[str]
+    needs: List[str]
+    issues: List[str]
+    friend_alias: Optional[str]
+    tone: str
+
+@dataclass
+class SolutionContext:
     situation: str
     feelings: List[str]
     needs: List[str]
@@ -43,17 +52,16 @@ def _guess_list(text: str, hints) -> List[str]:
             found.append(label)
     return list(dict.fromkeys(found))
 
-def extract_solution(req: FriendSolutionRequest) -> ExtractedContext:
-    text = req.text.strip()
+def _extract_common(text: str):
+    text = text.strip()
     situation = re.sub(r"\s+", " ", text)
     if len(situation) > 350:
         situation = situation[:350] + "..."
 
     feelings = _guess_list(text, _FEELING_HINTS)
     needs = _guess_list(text, _NEED_HINTS)
-
     issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
-    sentences = re.split("r[.!?\n+]", text)
+    sentences = re.split(r"[.!?\n]+", text)
     issues = []
     for s in sentences:
         s = s.strip()
@@ -61,47 +69,34 @@ def extract_solution(req: FriendSolutionRequest) -> ExtractedContext:
             continue
         if any(k in s for k in issue_keywords):
             issues.append(s)
+
     if not issues:
         issues = ["핵심 이슈를 더 추가해주세요."]
 
-    return ExtractedContext(
+    return situation, feelings, needs, issues[:5]
+
+def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
+    situation, feelings, needs, issues = _extract_common(req.text)
+
+    return SolutionContext(
         situation=situation,
         feelings=feelings,
         needs=needs,
-        issues=issues[:5],
+        issues=issues,
         friend_alias=req.friend_alias,
         goal=req.goal,
         tone=req.tone,
-        summary=req.summary.model_dump() if req.summary else None
+        summary=req.summary.model_dump() if getattr(req, "summary", None) else None,
     )
 
-def extract_summary(req: FriendSummaryRequest) -> ExtractedContext:
-    text = req.text.strip()
-    situation = re.sub(r"\s+", " ", text)
-    if len(situation) > 350:
-        situation = situation[:350] + "..."
+def extract_summary(req: FriendSummaryRequest) -> SummaryContext:
+    situation, feelings, needs, issues = _extract_common(req.text)
 
-    feelings = _guess_list(text, _FEELING_HINTS)
-    needs = _guess_list(text, _NEED_HINTS)
-
-    issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
-    sentences = re.split("r[.!?\n+], text")
-    issues = []
-    for s in sentences:
-        s = s.strip()
-        if not s:
-            continue
-        if any(k in s for k in issue_keywords):
-            issues.append(s)
-    if not issues:
-        issues = ["핵심 이슈를 더 추가해주세요."]
-
-    return ExtractedContext(
+    return SummaryContext(
         situation=situation,
         feelings=feelings,
         needs=needs,
-        issues=issues[:5],
+        issues=issues,
         friend_alias=req.friend_alias,
-        goal=req.goal,
-        tone=req.tone
+        tone=req.tone,
     )

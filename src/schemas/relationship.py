@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Literal, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal, List, Optional, Annotated
+from pydantic import BaseModel, Field, ConfigDict, conlist
 
 ToneType = Literal["warm", "neutral", "direct"]
 GoalType = Literal["understand", "resolve", "distance", "reconnect", "other"]
@@ -18,7 +18,7 @@ class FriendSummaryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     text: str = Field(..., min_length=5, max_length=5000, description="사용자가 작성한 친구 관계 생각/상황")
     tone: ToneType = Field(default="warm", description="정리 말투")
-    frined_alias: Optional[str] = Field(default=None, max_length=30)
+    friend_alias: Optional[str] = Field(default=None, max_length=30)
     context_hint: Optional[str] = Field(default=None, max_length=500)
 
 class FriendSummaryResponse(BaseModel):
@@ -63,8 +63,8 @@ class FriendSolutionResponse(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     goal: GoalType = Field(default="resolve")
     top_strategy: str = Field(..., min_length=5, max_length=200, description="핵심 전략 한 줄")
-    actions: List[ActionItem] = Field(..., min_items=1, max_items=6)
-    message_templates: List[MessageTemplate] = Field(default_factory=list, max_items=5)
+    actions: Annotated[list[ActionItem], conlist(ActionItem, min_length=1, max_length=6)]
+    message_templates: Annotated[list[MessageTemplate], conlist(MessageTemplate, min_length=0, max_length=5)] = Field(default_factory=list)
     risks: List[str] = Field(default_factory=list, description="부작용/주의")
     if_no_change: List[str] = Field(default_factory=list, description="반복될 때 플랜B")
     safety: SafetyResult = Field(default_factory=SafetyResult)
