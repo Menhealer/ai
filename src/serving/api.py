@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException, Request
 import logging, uuid
 from time import perf_counter
 from starlette.middleware.base import BaseHTTPMiddleware
+from pathlib import Path
 
 from src.safety.rules import check_safety
 from src.safety.escalation_summary import build_summary_escalation
@@ -67,6 +68,11 @@ async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummar
         raw = await call_llm_summary(ctx)
         logger.info("llm response received", extra={"request_id": rid})
 
+        # summary 로그 확인
+        # logger.info(f"llm raw tail (summary): {raw[-300:]}", extra={"request_id": rid})
+        # Path(settings.LOG_DIR).mkdir(parents=True, exist_ok=True)
+        # Path(f"{settings.LOG_DIR}/last_summary_raw.txt").write_text(raw, encoding="utf-8")
+
         result = parse_summary(raw)
         result.safety = safety
         logger.info("response validated", extra={"request_id": rid})
@@ -91,6 +97,11 @@ async def solution(req: FriendSolutionRequest, request: Request) -> FriendSoluti
 
         raw = await call_llm_solution(ctx)
         logger.info("llm response received", extra={"request_id": rid})
+        
+        # solution 로그 확인
+        # logger.info(f"llm raw tail (solution): {raw[-300:]}", extra={"request_id": rid})
+        # Path(settings.LOG_DIR).mkdir(parents=True, exist_ok=True)
+        # Path(f"{settings.LOG_DIR}/last_solution_raw.txt").write_text(raw, encoding="utf-8")
 
         result = parse_solution(raw)
         result.safety = safety
