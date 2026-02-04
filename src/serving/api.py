@@ -51,12 +51,15 @@ app.add_middleware(RequestIdMiddleware)
 async def health():
     return {"ok": True}
 
+def _entries_text(req) -> str:
+    return "\n".join([e.text for e in req.entries])
+
 @app.post("/summarize", response_model=FriendSummaryResponse)
 async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummaryResponse:
     rid = request.state.request_id
     logger.info("summarize called", extra={"request_id": rid})
 
-    safety = check_safety(req.text)
+    safety = check_safety(_entries_text(req))
     if safety.flagged:
         logger.warning(f"safety flagged: {safety.categories}", extra={"request_id": rid})
         return build_summary_escalation(req, safety)
@@ -86,7 +89,7 @@ async def solution(req: FriendSolutionRequest, request: Request) -> FriendSoluti
     rid = request.state.request_id
     logger.info("solution called", extra={"request_id": rid})
 
-    safety = check_safety(req.text)
+    safety = check_safety(_entries_text(req))
     if safety.flagged:
         logger.warning(f"safety flagged: {safety.categories}", extra={"request_id": rid})
         return build_solution_escalation(req, safety)

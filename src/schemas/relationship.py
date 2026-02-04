@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Literal, List, Optional, Annotated
-from pydantic import BaseModel, Field, ConfigDict, conlist
+from typing import Literal, List, Optional
+from pydantic import BaseModel, Field, ConfigDict
 
 ToneType = Literal["warm", "neutral", "direct"]
 GoalType = Literal["understand", "resolve", "distance", "reconnect", "other"]
@@ -11,22 +11,33 @@ class SafetyResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     flagged: bool = Field(default=False)
     categories: List[str] = Field(default_factory=list)
-    note: Optional[str] = Field(default=None, max_length=300)
+    note: Optional[str] = Field(default=None, max_length=800)
+
+# 1건 요약
+class FriendEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    text: str = Field(..., min_length=1, max_length=300, description="해당 날의 관계 기록/생각")
+    tags: List[str] = Field(default_factory=list, max_length=10, description="선택 태그 (감정/이벤트 등)")
+
+# 한달 요약
+class FriendMonthlyBaseRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friend_alias: Optional[str] = Field(default=None, description="친구 별칭(표시용)")
+    tone: ToneType = Field(default="warm")
+    entries: List[FriendEntry] = Field(..., min_length=1, max_length=300, description="한 달치 기록 리스트")
+    context_hint: Optional[str] = Field(default=None, max_length=500, description="추가 힌트(선택)")
 
 # summary
-class FriendSummaryRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    text: str = Field(..., min_length=5, max_length=5000, description="사용자가 작성한 친구 관계 생각/상황")
-    tone: ToneType = Field(default="warm", description="정리 말투")
-    friend_alias: Optional[str] = Field(default=None, max_length=30)
-    context_hint: Optional[str] = Field(default=None, max_length=500)
+class FriendSummaryRequest(FriendMonthlyBaseRequest):
+    pass
 
 class FriendSummaryResponse(BaseModel):
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     version: str = Field(default="v1-friend-summary")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     one_line_summary: str = Field(..., min_length=5, max_length=120, description="한 줄 핵심")
-    situation_summary: str = Field(..., min_length=10, max_length=500, description="상황 요약(사실 중심)")
+    situation_summary: str = Field(..., min_length=10, max_length=800, description="상황 요약(사실 중심)")
     facts: List[str] = Field(default_factory=list, description="관찰 가능한 사실/사건")
     my_interpretations: List[str] = Field(default_factory=list, description="내 해석/생각(단정X, 내 관점)")
     feelings: List[str] = Field(default_factory=list, description="감정 단어")
@@ -39,32 +50,27 @@ class FriendSummaryResponse(BaseModel):
 class ActionItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: str = Field(..., min_length=2, max_length=60)
-    description: str = Field(..., min_length=5, max_length=300)
+    description: str = Field(..., min_length=5, max_length=500)
     intensity: Literal["low", "medium", "high"] = Field(default="low")
-    why_this: Optional[str] = Field(default=None, max_length=200)
+    why_this: Optional[str] = Field(default=None, max_length=300)
 
 class MessageTemplate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     situation: str = Field(..., min_length=2, max_length=40)
-    text: str = Field(..., min_length=5, max_length=400)
+    text: str = Field(..., min_length=5, max_length=250)
 
-class FriendSolutionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    text: str = Field(..., min_length=5, max_length=5000)
+class FriendSolutionRequest(FriendMonthlyBaseRequest):
     goal: GoalType = Field(default="resolve")
-    tone: ToneType = Field(default="warm")
-    friend_alias: Optional[str] = Field(default=None, max_length=30)
-    context_hint: Optional[str] = Field(default=None, max_length=500)
-    summary: Optional[FriendSummaryResponse] = Field(default=None, description="(선택) /summarize 결과")
+    summary: Optional[FriendSummaryResponse] = Field(default=None, description="(선택) /summarize 결과를 그대로 넣기")
 
 class FriendSolutionResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: str = Field(default="v1-friend-solution")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    goal: GoalType = Field(default="resolve")
+    goal: GoalType = Field(..., description="요청 목표")
     top_strategy: str = Field(..., min_length=5, max_length=200, description="핵심 전략 한 줄")
-    actions: Annotated[list[ActionItem], conlist(ActionItem, min_length=1, max_length=6)]
-    message_templates: Annotated[list[MessageTemplate], conlist(MessageTemplate, min_length=0, max_length=5)] = Field(default_factory=list)
-    risks: List[str] = Field(default_factory=list, description="부작용/주의")
-    if_no_change: List[str] = Field(default_factory=list, description="반복될 때 플랜B")
+    actions: List[ActionItem] = Field(..., min_length=1, max_length=6)
+    message_templates: List[MessageTemplate] = Field(default_factory=list, max_length=5)
+    risks: List[str] = Field(default_factory=list, max_length=8, description="부작용/주의")
+    if_no_change: List[str] = Field(default_factory=list, max_length=6, description="반복될 때 플랜B")
     safety: SafetyResult = Field(default_factory=SafetyResult)
