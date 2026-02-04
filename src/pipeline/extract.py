@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
@@ -13,6 +14,8 @@ class SummaryContext:
     issues: List[str]
     friend_alias: Optional[str]
     tone: str
+    month_text: str = ""
+    entries_count: int = 0
 
 @dataclass
 class SolutionContext:
@@ -24,6 +27,8 @@ class SolutionContext:
     goal: str
     tone: str
     summary: Optional[Dict[str, Any]] = None
+    month_text: str = ""
+    entries_count: int = 0
 
 _FEELING_HINTS = [
     ("서운", "서운함"),
@@ -52,51 +57,63 @@ def _guess_list(text: str, hints) -> List[str]:
             found.append(label)
     return list(dict.fromkeys(found))
 
-def _extract_common(text: str):
-    text = text.strip()
+def _join_entries(req) -> str:
+    lines: List[str] = []
+    for e in req.entries:
+        dt = e.created_at.isoformat()
+        tag_part = f" [tags: {', '.join(e.tags)}]" if e.tags else ""
+        lines.append(f"- ({dt}) {e.text}{tag_part}")
+    return "\n".join(lines)
+
+def _extract_common(month_text: str):
+    text = (month_text or "").strip()
     situation = re.sub(r"\s+", " ", text)
-    if len(situation) > 350:
-        situation = situation[:350] + "..."
+    if len(situation) > 800:
+        situation = situation[:800] + "..."
 
     feelings = _guess_list(text, _FEELING_HINTS)
     needs = _guess_list(text, _NEED_HINTS)
     issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
     sentences = re.split(r"[.!?\n]+", text)
-    issues = []
+    issues: List[str] = []
     for s in sentences:
         s = s.strip()
         if not s:
             continue
         if any(k in s for k in issue_keywords):
             issues.append(s)
-
     if not issues:
         issues = ["핵심 이슈를 더 추가해주세요."]
+    return situation, feelings, needs, issues[:7]
 
-    return situation, feelings, needs, issues[:5]
+def extract_summary(req: FriendSummaryRequest) -> SummaryContext:
+    month_text = _join_entries(req)
+    situation, feelings, needs, issues = _extract_common(month_text)
 
-def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
-    situation, feelings, needs, issues = _extract_common(req.text)
-
-    return SolutionContext(
+    return SummaryContext(
+        friend_alias=req.friend_alias,
+        tone=req.tone,
+        month_text=month_text,
         situation=situation,
         feelings=feelings,
         needs=needs,
         issues=issues,
+        entries_count=len(req.entries),
+    )
+
+def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
+    month_text = _join_entries(req)
+    situation, feelings, needs, issues = _extract_common(month_text)
+
+    return SolutionContext(
         friend_alias=req.friend_alias,
         goal=req.goal,
         tone=req.tone,
-        summary=req.summary.model_dump(mode='json') if getattr(req, "summary", None) else None,
-    )
-
-def extract_summary(req: FriendSummaryRequest) -> SummaryContext:
-    situation, feelings, needs, issues = _extract_common(req.text)
-
-    return SummaryContext(
+        month_text=month_text,
         situation=situation,
         feelings=feelings,
         needs=needs,
         issues=issues,
-        friend_alias=req.friend_alias,
-        tone=req.tone,
+        entries_count=len(req.entries),
+        summary=req.summary.model_dump(mode="json") if req.summary else None,
     )
