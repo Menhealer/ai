@@ -86,7 +86,7 @@ def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
         friend_alias=req.friend_alias,
         goal=req.goal,
         tone=req.tone,
-        summary=req.summary.model_dump() if getattr(req, "summary", None) else None,
+        summary=req.summary.model_dump(mode='json') if getattr(req, "summary", None) else None,
     )
 
 def extract_summary(req: FriendSummaryRequest) -> SummaryContext:

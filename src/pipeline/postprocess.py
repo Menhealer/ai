@@ -6,23 +6,58 @@ from pydantic import ValidationError
 
 from src.schemas.relationship import FriendSummaryResponse, FriendSolutionResponse
 
-def _extract_json_lbject(text: str) -> str:
-    text = text.strip()
+def _extract_json_object(text: str) -> str:
+    text = (text or "").strip()
+    if not text:
+        raise ValueError("Empty LLM output.")
+    if "```" in text:
+        parts = text.split("```")
+        candidates = [p.strip() for p in parts if "{" in p and "}" in p]
+        if candidates:
+            text = candidates[0]
+            if text.lower().startswith("json"):
+                text = text[4:].strip()
+
     start = text.find("{")
-    end = text.find("}")
-    if start == -1 or end == -1 or end <= start:
+    if start == -1:
         raise ValueError("No JSON object found in LLM output.")
+    depth = 0
+    in_str = False
+    esc = False
+    end = None
+    for i in range(start, len(text)):
+        ch = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        else:
+            if ch == '"':
+                in_str = True
+                continue
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+    if end is None:
+        raise ValueError("JSON object not closed properly.")
     return text[start : end + 1]
 
 def _basic_repair(s: str) -> str:
     s = s.replace("“", '"').replace("”", '"').replace("’", "'").replace("‘", "'")
-    s = re.sub(r",\s*", "}", s)
-    s = re.sub(r",\s*", "]", s)
     s = re.sub(r"[\x00-\x1f\x7f]", "", s)
+    s = re.sub(r",\s*([}\]])", r"\1", s)
     return s
 
 def parse_summary(raw: str) -> FriendSummaryResponse:
-    json_text = _extract_json_lbject(raw)
+    json_text = _extract_json_object(raw)
     try:
         data: Dict[str, Any] = json.loads(json_text)
         return FriendSummaryResponse.model_validate(data)
@@ -32,7 +67,7 @@ def parse_summary(raw: str) -> FriendSummaryResponse:
         return FriendSummaryResponse.model_validate(data2)
 
 def parse_solution(raw: str) -> FriendSolutionResponse:
-    json_text = _extract_json_lbject(raw)
+    json_text = _extract_json_object(raw)
     try:
         data: Dict[str, Any] = json.loads(json_text)
         return FriendSolutionResponse.model_validate(data)
