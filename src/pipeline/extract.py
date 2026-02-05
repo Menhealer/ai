@@ -14,6 +14,7 @@ class SummaryContext:
     issues: List[str]
     friend_alias: Optional[str]
     tone: str
+    context_hint: Optional[str] = None
     month_text: str = ""
     entries_count: int = 0
 
@@ -26,6 +27,7 @@ class SolutionContext:
     friend_alias: Optional[str]
     goal: str
     tone: str
+    context_hint: Optional[str] = None
     summary: Optional[Dict[str, Any]] = None
     month_text: str = ""
     entries_count: int = 0
@@ -93,6 +95,7 @@ def extract_summary(req: FriendSummaryRequest) -> SummaryContext:
     return SummaryContext(
         friend_alias=req.friend_alias,
         tone=req.tone,
+        context_hint=req.context_hint,
         month_text=month_text,
         situation=situation,
         feelings=feelings,
@@ -109,6 +112,7 @@ def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
         friend_alias=req.friend_alias,
         goal=req.goal,
         tone=req.tone,
+        context_hint=req.context_hint,
         month_text=month_text,
         situation=situation,
         feelings=feelings,

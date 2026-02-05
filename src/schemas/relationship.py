@@ -38,6 +38,14 @@ class FriendSummaryResponse(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     one_line_summary: str = Field(..., min_length=5, max_length=120, description="한 줄 핵심")
     situation_summary: str = Field(..., min_length=10, max_length=800, description="상황 요약(사실 중심)")
+    period_label: str = Field(default="최근 3개월 기준", min_length=2, max_length=40, description="요약 기준 기간 라벨")
+    relationship_status_percent: int = Field(default=50, ge=0, le=100, description="관계 상태 게이지(0~100)")
+    relationship_status_label: str = Field(default="보통", min_length=1, max_length=20, description="관계 상태 라벨(예: 긍정적/보통/부정적)")
+    meeting_continuity: str = Field(default="", max_length=60, description="만남 지속/빈도 요약(짧은 문장)")
+    post_meeting_satisfaction: str = Field(default="", max_length=60, description="만남 이후 만족도 요약(짧은 문장)")
+    emotion_pattern: str = Field(default="", max_length=80, description="감정 패턴 요약(짧은 문장)")
+    gift_balance: str = Field(default="", max_length=80, description="선물/호의 주고받음 균형 요약")
+    initiative_balance: str = Field(default="", max_length=80, description="먼저 연락/제안한 쪽 요약")
     facts: List[str] = Field(default_factory=list, description="관찰 가능한 사실/사건")
     my_interpretations: List[str] = Field(default_factory=list, description="내 해석/생각(단정X, 내 관점)")
     feelings: List[str] = Field(default_factory=list, description="감정 단어")
@@ -50,14 +58,14 @@ class FriendSummaryResponse(BaseModel):
 class ActionItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: str = Field(..., min_length=2, max_length=60)
-    description: str = Field(..., min_length=5, max_length=500)
+    description: str = Field(..., min_length=5, max_length=800)
     intensity: Literal["low", "medium", "high"] = Field(default="low")
     why_this: Optional[str] = Field(default=None, max_length=300)
 
 class MessageTemplate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    situation: str = Field(..., min_length=2, max_length=40)
-    text: str = Field(..., min_length=5, max_length=250)
+    situation: str = Field(..., min_length=2, max_length=400)
+    text: str = Field(..., min_length=5, max_length=600)
 
 class FriendSolutionRequest(FriendMonthlyBaseRequest):
     goal: GoalType = Field(default="resolve")
@@ -69,6 +77,7 @@ class FriendSolutionResponse(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     goal: GoalType = Field(..., description="요청 목표")
     top_strategy: str = Field(..., min_length=5, max_length=200, description="핵심 전략 한 줄")
+    direction_suggestion: str = Field(default="", max_length=120, description="관계 방향성 제안 한 줄")
     actions: List[ActionItem] = Field(..., min_length=1, max_length=6)
     message_templates: List[MessageTemplate] = Field(default_factory=list, max_length=5)
     risks: List[str] = Field(default_factory=list, max_length=8, description="부작용/주의")

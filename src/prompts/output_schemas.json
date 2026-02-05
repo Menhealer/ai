@@ -1,6 +1,14 @@
 {
   "version": "v1-friend",
   "summary": "string",
+  "period_label": "string",
+  "relationship_status_percent": 0,
+  "relationship_status_label": "string",
+  "meeting_continuity": "string",
+  "post_meeting_satisfaction": "string",
+  "emotion_pattern": "string",
+  "gift_balance": "string",
+  "initiative_balance": "string",
   "feelings": ["string"],
   "needs": ["string"],
   "possible_interpretations": ["string"],
@@ -18,5 +26,6 @@
       "text": "string"
     }
   ],
-  "cautions": ["string"]
+  "cautions": ["string"],
+  "direction_suggestion": "string"
 }
