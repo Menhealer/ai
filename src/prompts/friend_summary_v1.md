@@ -22,7 +22,7 @@
 - month_text: 한 달치 기록을 합친 원문(각 줄에 날짜/텍스트/태그가 포함될 수 있음)
 - entries_count: 기록 개수
 - situation: month_text를 압축한 1~2문장 요약
-- feelings/needs/issues: 키워드 기반 힌트 리스트
+- feelings/needs/issues: (선택) 힌트 리스트. 비어 있을 수 있다.
 - tone: warm|neutral|direct
 - friend_alias(선택), context_hint(선택)
 
@@ -51,6 +51,7 @@
 # 작성 가이드
 
 - context_hint가 있으면 핵심 근거로 활용한다. (예: 만남 빈도/만족도/감정 반복/선물 주고받음 균형 등)
+- feelings/needs가 비어 있으면 month_text만 보고 추론해 채운다.
 - 근거가 없는 숫자/기간 단정은 피한다. 필요한 경우 "~일 가능성이 있어요"로 완곡하게 쓴다.
 - one_line_summary: 1문장, 가장 핵심만
 - situation_summary: 사실 중심 2~4문장
