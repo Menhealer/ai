@@ -83,3 +83,38 @@ class FriendSolutionResponse(BaseModel):
     risks: List[str] = Field(default_factory=list, max_length=8, description="부작용/주의")
     if_no_change: List[str] = Field(default_factory=list, max_length=6, description="반복될 때 플랜B")
     safety: SafetyResult = Field(default_factory=SafetyResult)
+
+# settlement
+class SettlementPeriodContext(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    period_label: str = Field(default="이번 달", min_length=2, max_length=20)
+    entries: List[FriendEntry] = Field(..., min_length=1, max_length=300)
+    context_hint: Optional[str] = Field(default=None, max_length=500)
+
+class SettlementFriendContext(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friend_alias: str = Field(..., min_length=1, max_length=40)
+    entries: List[FriendEntry] = Field(..., min_length=1, max_length=300)
+    context_hint: Optional[str] = Field(default=None, max_length=500)
+
+class SettlementRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    tone: ToneType = Field(default="warm")
+    month: SettlementPeriodContext
+    quarter: SettlementPeriodContext
+    friends: List[SettlementFriendContext] = Field(default_factory=list, max_length=50)
+    context_hint: Optional[str] = Field(default=None, max_length=500, description="전체 힌트(선택)")
+
+class SettlementResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: str = Field(default="v1-settlement")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    month_summary: str = Field(..., min_length=20, max_length=1200)
+    month_solution: str = Field(..., min_length=20, max_length=1200)
+    quarter_summary: str = Field(..., min_length=20, max_length=1200)
+    quarter_bullets: List[str] = Field(..., min_length=1, max_length=6, description="1분기 핵심 요약 불릿")
+    best_friend: Optional[str] = Field(default=None, max_length=40)
+    worst_friend: Optional[str] = Field(default=None, max_length=40)
+    recommendation_title: str = Field(..., min_length=5, max_length=80)
+    recommendation_body: str = Field(..., min_length=20, max_length=1200)
+    safety: SafetyResult = Field(default_factory=SafetyResult)

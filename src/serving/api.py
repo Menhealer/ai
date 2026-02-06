@@ -9,11 +9,20 @@ from pathlib import Path
 from src.safety.rules import check_safety
 from src.safety.escalation_summary import build_summary_escalation
 from src.safety.escalation_solution import build_solution_escalation
-from src.pipeline.extract import extract_summary, extract_solution
+from src.safety.escalation_settlement import build_settlement_escalation
+from src.pipeline.extract import extract_summary, extract_solution, extract_settlement
 from src.pipeline.generate_summary import call_llm_summary
 from src.pipeline.generate_solution import call_llm_solution
-from src.pipeline.postprocess import parse_solution, parse_summary
-from src.schemas.relationship import FriendSolutionResponse, FriendSolutionRequest, FriendSummaryRequest, FriendSummaryResponse
+from src.pipeline.generate_settlement import call_llm_settlement
+from src.pipeline.postprocess import parse_solution, parse_summary, parse_settlement
+from src.schemas.relationship import (
+    FriendSolutionResponse,
+    FriendSolutionRequest,
+    FriendSummaryRequest,
+    FriendSummaryResponse,
+    SettlementRequest,
+    SettlementResponse,
+)
 
 from src.config.settings import settings
 from src.utils.logging import setup_logging, attach_request_id_filter
@@ -53,6 +62,25 @@ async def health():
 
 def _entries_text(req) -> str:
     return "\n".join([e.text for e in req.entries])
+
+def _settlement_entries_text(req: SettlementRequest) -> str:
+    parts = []
+    if req.context_hint:
+        parts.append(req.context_hint)
+    if req.month.context_hint:
+        parts.append(req.month.context_hint)
+    for e in req.month.entries:
+        parts.append(e.text)
+    if req.quarter.context_hint:
+        parts.append(req.quarter.context_hint)
+    for e in req.quarter.entries:
+        parts.append(e.text)
+    for f in req.friends:
+        if f.context_hint:
+            parts.append(f.context_hint)
+        for e in f.entries:
+            parts.append(e.text)
+    return "\n".join(p for p in parts if p)
 
 @app.post("/summarize", response_model=FriendSummaryResponse)
 async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummaryResponse:
@@ -113,3 +141,28 @@ async def solution(req: FriendSolutionRequest, request: Request) -> FriendSoluti
     except Exception as e:
         logger.exception("solution failed", extra={"request_id": rid})
         raise HTTPException(status_code=500, detail=f"AI solution failed: {e}")
+
+@app.post("/settlement", response_model=SettlementResponse)
+async def settlement(req: SettlementRequest, request: Request) -> SettlementResponse:
+    rid = request.state.request_id
+    logger.info("settlement called", extra={"request_id": rid})
+
+    safety = check_safety(_settlement_entries_text(req))
+    if safety.flagged:
+        logger.warning(f"safety flagged: {safety.categories}", extra={"request_id": rid})
+        return build_settlement_escalation(req, safety)
+
+    try:
+        ctx = extract_settlement(req)
+        logger.info("extracted context", extra={"request_id": rid})
+
+        raw = await call_llm_settlement(ctx)
+        logger.info("llm response received", extra={"request_id": rid})
+
+        result = parse_settlement(raw)
+        result.safety = safety
+        logger.info("response validated", extra={"request_id": rid})
+        return result
+    except Exception as e:
+        logger.exception("settlement failed", extra={"request_id": rid})
+        raise HTTPException(status_code=500, detail=f"AI settlement failed: {e}")

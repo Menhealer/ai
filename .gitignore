@@ -5,5 +5,6 @@ __pycache__
 data/
 model/
 setting.txt
+plan.txt
 logs
 .pytest_cache

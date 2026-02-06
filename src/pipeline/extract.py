@@ -4,7 +4,11 @@ import re
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 
-from src.schemas.relationship import FriendSolutionRequest, FriendSummaryRequest
+from src.schemas.relationship import (
+    FriendSolutionRequest,
+    FriendSummaryRequest,
+    SettlementRequest,
+)
 
 @dataclass
 class SummaryContext:
@@ -32,32 +36,27 @@ class SolutionContext:
     month_text: str = ""
     entries_count: int = 0
 
-_FEELING_HINTS = [
-    ("서운", "서운함"),
-    ("불안", "불안함"),
-    ("화", "화남"),
-    ("짜증", "짜증남"),
-    ("답답", "답답함"),
-    ("속상", "속상함"),
-    ("미안", "미안함"),
-    ("걱정", "걱정됨"),
-]
+@dataclass
+class SettlementPeriodCtx:
+    period_label: str
+    month_text: str
+    entries_count: int
+    context_hint: Optional[str]
 
-_NEED_HINTS = [
-    ("존중", "존중"),
-    ("배려", "배려"),
-    ("소통", "명확한 소통"),
-    ("사과", "사과/인정"),
-    ("시간", "시간/거리"),
-    ("신뢰", "신뢰"),
-]
+@dataclass
+class SettlementFriendCtx:
+    friend_alias: str
+    month_text: str
+    entries_count: int
+    context_hint: Optional[str]
 
-def _guess_list(text: str, hints) -> List[str]:
-    found = []
-    for needle, label in hints:
-        if needle in text:
-            found.append(label)
-    return list(dict.fromkeys(found))
+@dataclass
+class SettlementContext:
+    tone: str
+    month: SettlementPeriodCtx
+    quarter: SettlementPeriodCtx
+    friends: List[SettlementFriendCtx]
+    context_hint: Optional[str]
 
 def _join_entries(req) -> str:
     lines: List[str] = []
@@ -73,8 +72,8 @@ def _extract_common(month_text: str):
     if len(situation) > 800:
         situation = situation[:800] + "..."
 
-    feelings = _guess_list(text, _FEELING_HINTS)
-    needs = _guess_list(text, _NEED_HINTS)
+    feelings: List[str] = []
+    needs: List[str] = []
     issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
     sentences = re.split(r"[.!?\n]+", text)
     issues: List[str] = []
@@ -120,4 +119,34 @@ def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
         issues=issues,
         entries_count=len(req.entries),
         summary=req.summary.model_dump(mode="json") if req.summary else None,
+    )
+
+def _period_ctx(period) -> SettlementPeriodCtx:
+    month_text = _join_entries(period)
+    return SettlementPeriodCtx(
+        period_label=period.period_label,
+        month_text=month_text,
+        entries_count=len(period.entries),
+        context_hint=period.context_hint,
+    )
+
+def _friend_ctx(f) -> SettlementFriendCtx:
+    month_text = _join_entries(f)
+    return SettlementFriendCtx(
+        friend_alias=f.friend_alias,
+        month_text=month_text,
+        entries_count=len(f.entries),
+        context_hint=f.context_hint,
+    )
+
+def extract_settlement(req: SettlementRequest) -> SettlementContext:
+    month = _period_ctx(req.month)
+    quarter = _period_ctx(req.quarter)
+    friends = [_friend_ctx(f) for f in req.friends]
+    return SettlementContext(
+        tone=req.tone,
+        month=month,
+        quarter=quarter,
+        friends=friends,
+        context_hint=req.context_hint,
     )
