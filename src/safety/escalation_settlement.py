@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from src.schemas.relationship import SettlementRequest, SettlementResponse, SafetyResult
 
-def build_settlement_escalation(req: SettlementRequest, safety: SafetyResult) -> SettlementResponse:
+def build_settlement_escalation(_req: SettlementRequest, safety: SafetyResult) -> SettlementResponse:
     return SettlementResponse(
         version="v1-settlement",
         created_at=datetime.now(timezone.utc),
