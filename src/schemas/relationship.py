@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Literal, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
-ToneType = Literal["warm", "neutral", "direct"]
+ToneType = Literal["warm"]
 GoalType = Literal["understand", "resolve", "distance", "reconnect", "other"]
 
 class SafetyResult(BaseModel):
