@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str
     LLM_API_KEY: str
     LLM_MODEL: str
-    LLM_TIMEOUT_SEC: int = 60
+    LLM_TIMEOUT_SEC: int
     LLM_TEMPERATURE: float = 0.4
     LLM_MAX_TOKENS: int = 2500
     LLM_STREAM: bool = False
