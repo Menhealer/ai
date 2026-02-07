@@ -18,7 +18,6 @@ class FriendEntry(BaseModel):
     model_config = ConfigDict(extra="forbid")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     text: str = Field(..., min_length=1, max_length=300, description="해당 날의 관계 기록/생각")
-    tags: List[str] = Field(default_factory=list, max_length=10, description="선택 태그 (감정/이벤트 등)")
 
 # 한달 요약
 class FriendMonthlyBaseRequest(BaseModel):
@@ -48,8 +47,6 @@ class FriendSummaryResponse(BaseModel):
     initiative_balance: str = Field(default="", max_length=80, description="먼저 연락/제안한 쪽 요약")
     facts: List[str] = Field(default_factory=list, description="관찰 가능한 사실/사건")
     my_interpretations: List[str] = Field(default_factory=list, description="내 해석/생각(단정X, 내 관점)")
-    feelings: List[str] = Field(default_factory=list, description="감정 단어")
-    needs: List[str] = Field(default_factory=list, description="욕구/가치")
     uncertainties: List[str] = Field(default_factory=list, description="모르는 부분/확인 필요")
     reflection_questions: List[str] = Field(default_factory=list, description="내가 스스로에게 던질 질문(3개 권장)")
     safety: SafetyResult = Field(default_factory=SafetyResult)

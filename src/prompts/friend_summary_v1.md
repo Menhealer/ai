@@ -19,7 +19,7 @@
 
 # 입력(JSON 문자열로 제공됨)
 
-- month_text: 한 달치 기록을 합친 원문(각 줄에 날짜/텍스트/태그가 포함될 수 있음)
+- month_text: 한 달치 기록을 합친 원문(각 줄에 날짜/텍스트가 포함됨)
 - entries_count: 기록 개수
 - situation: month_text를 압축한 1~2문장 요약
 - feelings/needs/issues: (선택) 힌트 리스트. 비어 있을 수 있다.
@@ -42,8 +42,6 @@
 "initiative_balance": "string",
 "facts": ["string"],
 "my_interpretations": ["string"],
-"feelings": ["string"],
-"needs": ["string"],
 "uncertainties": ["string"],
 "reflection_questions": ["string"]
 }
@@ -65,7 +63,5 @@
 - initiative_balance: 누가 먼저 연락/제공을 더 많이 하는지 요약
 - facts: 관찰 가능한 사건/상황 (3~7개 권장)
 - my_interpretations: 내 해석/생각을 "나는 ~라고 느낀다/생각한다" 관점으로 (2~6개 권장)
-- feelings: 감정 단어 2~5개
-- needs: 욕구/가치 1~4개
 - uncertainties: 내가 모르는 부분/확인 필요한 부분 (1~4개)
 - reflection_questions: 스스로에게 던질 질문 3개(권장)

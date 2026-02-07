@@ -19,7 +19,7 @@
 
 # 입력(JSON 문자열로 제공됨)
 
-- month_text: 한 달치 기록을 합친 원문(각 줄에 날짜/텍스트/태그가 포함될 수 있음)
+- month_text: 한 달치 기록을 합친 원문(각 줄에 날짜/텍스트가 포함됨)
 - entries_count: 기록 개수
 - situation: month_text를 압축한 1~2문장 요약
 - feelings/needs/issues: (선택) 힌트 리스트. 비어 있을 수 있다.
