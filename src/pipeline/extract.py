@@ -62,8 +62,7 @@ def _join_entries(req) -> str:
     lines: List[str] = []
     for e in req.entries:
         dt = e.created_at.isoformat()
-        tag_part = f" [tags: {', '.join(e.tags)}]" if e.tags else ""
-        lines.append(f"- ({dt}) {e.text}{tag_part}")
+        lines.append(f"- ({dt}) {e.text}")
     return "\n".join(lines)
 
 def _extract_common(month_text: str):
