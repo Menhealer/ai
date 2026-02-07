@@ -17,7 +17,7 @@
 
 # 입력(JSON 문자열로 제공됨)
 
-- tone: warm|neutral|direct
+- tone: warm (고정)
 - context_hint(선택): 전체 힌트
 - month: { period_label, month_text, entries_count, context_hint }
 - quarter: { period_label, month_text, entries_count, context_hint }

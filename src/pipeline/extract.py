@@ -13,8 +13,6 @@ from src.schemas.relationship import (
 @dataclass
 class SummaryContext:
     situation: str
-    feelings: List[str]
-    needs: List[str]
     issues: List[str]
     friend_alias: Optional[str]
     tone: str
@@ -25,8 +23,6 @@ class SummaryContext:
 @dataclass
 class SolutionContext:
     situation: str
-    feelings: List[str]
-    needs: List[str]
     issues: List[str]
     friend_alias: Optional[str]
     goal: str
@@ -70,25 +66,12 @@ def _extract_common(month_text: str):
     situation = re.sub(r"\s+", " ", text)
     if len(situation) > 800:
         situation = situation[:800] + "..."
-
-    feelings: List[str] = []
-    needs: List[str] = []
-    issue_keywords = ["무시", "연락", "약속", "오해", "말투", "거리", "부담", "서운", "화", "차단", "피하"]
-    sentences = re.split(r"[.!?\n]+", text)
     issues: List[str] = []
-    for s in sentences:
-        s = s.strip()
-        if not s:
-            continue
-        if any(k in s for k in issue_keywords):
-            issues.append(s)
-    if not issues:
-        issues = ["핵심 이슈를 더 추가해주세요."]
-    return situation, feelings, needs, issues[:7]
+    return situation, issues[:7]
 
 def extract_summary(req: FriendSummaryRequest) -> SummaryContext:
     month_text = _join_entries(req)
-    situation, feelings, needs, issues = _extract_common(month_text)
+    situation, issues = _extract_common(month_text)
 
     return SummaryContext(
         friend_alias=req.friend_alias,
@@ -96,15 +79,13 @@ def extract_summary(req: FriendSummaryRequest) -> SummaryContext:
         context_hint=req.context_hint,
         month_text=month_text,
         situation=situation,
-        feelings=feelings,
-        needs=needs,
         issues=issues,
         entries_count=len(req.entries),
     )
 
 def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
     month_text = _join_entries(req)
-    situation, feelings, needs, issues = _extract_common(month_text)
+    situation, issues = _extract_common(month_text)
 
     return SolutionContext(
         friend_alias=req.friend_alias,
@@ -113,8 +94,6 @@ def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
         context_hint=req.context_hint,
         month_text=month_text,
         situation=situation,
-        feelings=feelings,
-        needs=needs,
         issues=issues,
         entries_count=len(req.entries),
         summary=req.summary.model_dump(mode="json") if req.summary else None,
