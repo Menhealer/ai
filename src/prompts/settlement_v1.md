@@ -22,6 +22,7 @@
 - month: { period_label, month_text, entries_count, context_hint }
 - quarter: { period_label, month_text, entries_count, context_hint }
 - friends: [{ friend_alias, month_text, entries_count, context_hint }]
+- top_friend(선택): friends 중 entries_count가 가장 많은 친구
 
 # 출력 스키마(키/구조 변경 금지)
 
@@ -31,6 +32,15 @@
 "month_bullets": ["string"],
 "month_solution": "string",
 "month_direction": "string",
+"month_friend_summaries": [
+  {
+    "friend_alias": "string",
+    "summary": "string",
+    "bullets": ["string"],
+    "solution": "string",
+    "direction": "string"
+  }
+],
 "quarter_summary": "string",
 "quarter_solution": "string",
 "quarter_direction": "string",
@@ -49,15 +59,16 @@
 
 # 작성 가이드
 
-- month_summary: 3~5문장, period_label을 첫 문장에 포함
+- month_summary: 3~5문장, period_label을 첫 문장에 포함. top_friend가 있으면 그 친구에 대한 월별 정산을 작성한다.
 - month_bullets: 2~4개, "기록된 내용을 보면" 아래 불릿에 들어갈 근거
 - month_solution: 2~4문장, 조언보다 "방향성/권장" 톤으로 작성
 - month_direction: 한 줄 방향성(예: "당분간 만남 빈도를 줄이고 관찰 권장")
-- quarter_summary: 2~4문장, 사용자의 관계 경향/패턴 중심
+- month_friend_summaries: friends 각각에 대해 월별 정산을 작성(요약/불릿/솔루션/방향성)
+- quarter_summary: 2~4문장, "나에 대한 정산" 관점(월별 정산 데이터와 분기 기록을 합산한 경향)
 - quarter_solution: 2~4문장, 분기 관점의 관계 솔루션
 - quarter_direction: 한 줄 방향성(예: "만남 빈도보다 만남 이후 감정 상태를 기준으로 재정의")
 - quarter_bullets: 2~4개, 한 줄 요약
-- best_friend/worst_friend: friends에서 근거가 충분하면 반드시 선택
+- best_friend/worst_friend: friends에서 근거가 충분하면 반드시 선택(추천/주의 카드와 연동)
 - recommendation_friend: 추천 친구 이름(가능하면 best_friend 사용)
 - recommendation_title: "베스트 프렌드 추천" 같은 짧은 제목
 - recommendation_body: 2~4문장, 특정 친구를 중심으로 근거+제안 포함

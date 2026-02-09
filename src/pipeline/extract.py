@@ -52,6 +52,7 @@ class SettlementContext:
     month: SettlementPeriodCtx
     quarter: SettlementPeriodCtx
     friends: List[SettlementFriendCtx]
+    top_friend: Optional[SettlementFriendCtx]
     context_hint: Optional[str]
 
 def _join_entries(req) -> str:
@@ -121,10 +122,14 @@ def extract_settlement(req: SettlementRequest) -> SettlementContext:
     month = _period_ctx(req.month)
     quarter = _period_ctx(req.quarter)
     friends = [_friend_ctx(f) for f in req.friends]
+    top_friend = None
+    if friends:
+        top_friend = max(friends, key=lambda f: f.entries_count)
     return SettlementContext(
         tone=req.tone,
         month=month,
         quarter=quarter,
         friends=friends,
+        top_friend=top_friend,
         context_hint=req.context_hint,
     )
