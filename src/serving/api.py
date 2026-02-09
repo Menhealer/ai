@@ -152,6 +152,19 @@ async def settlement(req: SettlementRequest, request: Request) -> SettlementResp
         logger.info("llm response received", extra={"request_id": rid})
 
         result = parse_settlement(raw)
+        # 분기 섹션에서 특정 친구 이름이 언급되면 일반화해서 제거
+        aliases = [s.friend_alias for s in req.summaries if s.friend_alias]
+        if aliases:
+            for alias in aliases:
+                if alias in result.quarter_summary:
+                    result.quarter_summary = result.quarter_summary.replace(alias, "상대")
+                if alias in result.quarter_solution:
+                    result.quarter_solution = result.quarter_solution.replace(alias, "상대")
+                if alias in result.quarter_direction:
+                    result.quarter_direction = result.quarter_direction.replace(alias, "관계")
+                result.quarter_bullets = [
+                    b.replace(alias, "상대") for b in result.quarter_bullets
+                ]
         result.safety = safety
         logger.info("response validated", extra={"request_id": rid})
         return result
