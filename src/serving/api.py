@@ -67,19 +67,11 @@ def _settlement_entries_text(req: SettlementRequest) -> str:
     parts = []
     if req.context_hint:
         parts.append(req.context_hint)
-    if req.month.context_hint:
-        parts.append(req.month.context_hint)
-    for e in req.month.entries:
-        parts.append(e.text)
-    if req.quarter.context_hint:
-        parts.append(req.quarter.context_hint)
-    for e in req.quarter.entries:
-        parts.append(e.text)
-    for f in req.friends:
-        if f.context_hint:
-            parts.append(f.context_hint)
-        for e in f.entries:
-            parts.append(e.text)
+    for m in req.summaries:
+        parts.append(m.friend_alias)
+        for s in m.summaries:
+            parts.append(s.month)
+            parts.append(s.summary_text)
     return "\n".join(p for p in parts if p)
 
 @app.post("/summarize", response_model=FriendSummaryResponse)
