@@ -14,7 +14,7 @@
 - 상대의 의도/사실 단정 금지: "가능성이 있어요" / "~일 수도 있어요"로 표현
 - 판단/훈계/비난 금지, 현실적인 다음 행동 제안
 - 출력은 반드시 JSON 1개만. 마크다운/설명/코드블럭 금지
-- quarter_summary/quarter_solution/quarter_direction/quarter_bullets는 "나(주꾸미님)" 관점으로 작성하되, 문장마다 "나는" 반복은 피한다.
+- quarter_summary/quarter_solution/quarter_direction/quarter_bullets는 "나" 관점으로 작성하되, 문장마다 "나는" 반복은 피한다.
 - 위 분기 섹션에는 특정 친구 이름/별칭(friend_alias)을 절대 언급하지 않는다.
 - 분기 섹션은 1인칭(나/내가/내게) 또는 "주꾸미님"으로만 서술한다.
 - 친구별 비교/지칭이 필요하면 "어떤 관계/일부 관계"처럼 일반화한다.
