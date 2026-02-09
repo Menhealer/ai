@@ -8,6 +8,7 @@ from src.schemas.relationship import (
     FriendSolutionRequest,
     FriendSummaryRequest,
     SettlementRequest,
+    SettlementSummaryItem,
 )
 
 @dataclass
@@ -33,26 +34,9 @@ class SolutionContext:
     entries_count: int = 0
 
 @dataclass
-class SettlementPeriodCtx:
-    period_label: str
-    month_text: str
-    entries_count: int
-    context_hint: Optional[str]
-
-@dataclass
-class SettlementFriendCtx:
-    friend_alias: str
-    month_text: str
-    entries_count: int
-    context_hint: Optional[str]
-
-@dataclass
 class SettlementContext:
     tone: str
-    month: SettlementPeriodCtx
-    quarter: SettlementPeriodCtx
-    friends: List[SettlementFriendCtx]
-    top_friend: Optional[SettlementFriendCtx]
+    summaries: List[dict]
     context_hint: Optional[str]
 
 def _join_entries(req) -> str:
@@ -100,36 +84,18 @@ def extract_solution(req: FriendSolutionRequest) -> SolutionContext:
         summary=req.summary.model_dump(mode="json") if req.summary else None,
     )
 
-def _period_ctx(period) -> SettlementPeriodCtx:
-    month_text = _join_entries(period)
-    return SettlementPeriodCtx(
-        period_label=period.period_label,
-        month_text=month_text,
-        entries_count=len(period.entries),
-        context_hint=period.context_hint,
-    )
-
-def _friend_ctx(f) -> SettlementFriendCtx:
-    month_text = _join_entries(f)
-    return SettlementFriendCtx(
-        friend_alias=f.friend_alias,
-        month_text=month_text,
-        entries_count=len(f.entries),
-        context_hint=f.context_hint,
-    )
-
 def extract_settlement(req: SettlementRequest) -> SettlementContext:
-    month = _period_ctx(req.month)
-    quarter = _period_ctx(req.quarter)
-    friends = [_friend_ctx(f) for f in req.friends]
-    top_friend = None
-    if friends:
-        top_friend = max(friends, key=lambda f: f.entries_count)
+    summaries: List[dict] = []
+    for m in req.summaries:
+        if isinstance(m, SettlementSummaryItem):
+            summaries.append({
+                "friend_alias": m.friend_alias,
+                "summaries": [s.model_dump(mode="json") for s in m.summaries],
+            })
+        else:
+            summaries.append(m)
     return SettlementContext(
         tone=req.tone,
-        month=month,
-        quarter=quarter,
-        friends=friends,
-        top_friend=top_friend,
+        summaries=summaries,
         context_hint=req.context_hint,
     )

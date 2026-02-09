@@ -97,9 +97,7 @@ class SettlementFriendContext(BaseModel):
 class SettlementRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tone: ToneType = Field(default="warm")
-    month: SettlementPeriodContext
-    quarter: SettlementPeriodContext
-    friends: List[SettlementFriendContext] = Field(default_factory=list, max_length=50)
+    summaries: List["SettlementSummaryItem"] = Field(..., min_length=1, max_length=50, description="친구별 월간 요약 리스트")
     context_hint: Optional[str] = Field(default=None, max_length=500, description="전체 힌트(선택)")
 
 class SettlementFriendMonthlySummary(BaseModel):
@@ -110,19 +108,24 @@ class SettlementFriendMonthlySummary(BaseModel):
     solution: str = Field(..., min_length=10, max_length=800)
     direction: str = Field(..., min_length=5, max_length=120)
 
+class SettlementMonthlyText(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    month: str = Field(..., min_length=7, max_length=7, description="YYYY-MM")
+    summary_text: str = Field(..., min_length=5, max_length=800)
+
+class SettlementSummaryItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friend_alias: str = Field(..., min_length=1, max_length=40)
+    summaries: List[SettlementMonthlyText] = Field(..., min_length=1, max_length=12, description="친구별 월간 요약 텍스트 리스트")
+
 class SettlementResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: str = Field(default="v1-settlement")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    month_summary: str = Field(..., min_length=20, max_length=1200)
-    month_bullets: List[str] = Field(..., min_length=1, max_length=6, description="이번 달 요약 근거 불릿")
-    month_solution: str = Field(..., min_length=20, max_length=1200)
-    month_direction: str = Field(..., min_length=10, max_length=200, description="이번 달 방향성 한 줄")
-    month_friend_summaries: List[SettlementFriendMonthlySummary] = Field(default_factory=list, description="친구별 월별 정산 리스트")
     quarter_summary: str = Field(..., min_length=20, max_length=1200)
     quarter_solution: str = Field(..., min_length=20, max_length=1200)
-    quarter_direction: str = Field(..., min_length=10, max_length=200, description="1분기 방향성 한 줄")
-    quarter_bullets: List[str] = Field(..., min_length=1, max_length=6, description="1분기 핵심 요약 불릿")
+    quarter_direction: str = Field(..., min_length=10, max_length=200, description="분기 방향성 한 줄")
+    quarter_bullets: List[str] = Field(..., min_length=1, max_length=6, description="분기 핵심 요약 불릿")
     best_friend: Optional[str] = Field(default=None, max_length=40)
     worst_friend: Optional[str] = Field(default=None, max_length=40)
     recommendation_friend: Optional[str] = Field(default=None, max_length=40)

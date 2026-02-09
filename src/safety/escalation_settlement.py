@@ -8,14 +8,6 @@ def build_settlement_escalation(_req: SettlementRequest, safety: SafetyResult) -
     return SettlementResponse(
         version="v1-settlement",
         created_at=datetime.now(timezone.utc),
-        month_summary="민감/위험 신호가 감지되어 일반적인 정산보다 안전을 우선 안내합니다.",
-        month_bullets=[
-            "안전을 우선해야 하는 신호가 감지되었어요.",
-            "관계 분석은 안전 확보 이후로 미루는 것이 좋아요.",
-        ],
-        month_solution="지금은 관계 분석보다 안전을 먼저 확보하는 것이 중요해요. 가까운 도움을 요청하세요.",
-        month_direction="지금은 관계 분석보다 안전 확보를 우선하세요.",
-        month_friend_summaries=[],
         quarter_summary="현재는 관계 정리보다 안전이 최우선입니다.",
         quarter_solution="안전이 확보된 뒤에 관계 문제를 단계적으로 다루는 것이 좋아요.",
         quarter_direction="안전 확보 후 관계를 재정리하세요.",
