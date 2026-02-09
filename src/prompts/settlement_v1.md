@@ -61,8 +61,3 @@
 - caution_title: "워스트 프렌드 주의" 같은 짧은 제목
 - caution_body: 2~4문장, 특정 친구를 중심으로 위험/주의점 설명
 - caution_points: 2~4개, 주의 근거 포인트
-- recommendation_points: 2~4개, 추천 근거 포인트
-- caution_friend: 주의/워스트 친구 이름(가능하면 worst_friend 사용)
-- caution_title: "워스트 프렌드 주의" 같은 짧은 제목
-- caution_body: 2~4문장, 특정 친구를 중심으로 위험/주의점 설명
-- caution_points: 2~4개, 주의 근거 포인트

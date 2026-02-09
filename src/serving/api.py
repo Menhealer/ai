@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Request
-import logging, uuid
+import logging, uuid, re
 from time import perf_counter
 from starlette.middleware.base import BaseHTTPMiddleware
 from pathlib import Path
@@ -73,6 +73,16 @@ def _settlement_entries_text(req: SettlementRequest) -> str:
             parts.append(s.month)
             parts.append(s.summary_text)
     return "\n".join(p for p in parts if p)
+
+def _replace_aliases(text: str, aliases: list[str], repl: str) -> str:
+    if not text or not aliases:
+        return text
+    # 길이 긴 별칭부터(겹치는 이름 대비) + 중복 제거
+    uniq = sorted(set(a for a in aliases if a), key=len, reverse=True)
+    if not uniq:
+        return text
+    pattern = re.compile("|".join(re.escape(a) for a in uniq))
+    return pattern.sub(repl, text)
 
 @app.post("/summarize", response_model=FriendSummaryResponse)
 async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummaryResponse:
@@ -152,19 +162,14 @@ async def settlement(req: SettlementRequest, request: Request) -> SettlementResp
         logger.info("llm response received", extra={"request_id": rid})
 
         result = parse_settlement(raw)
-        # 분기 섹션에서 특정 친구 이름이 언급되면 일반화해서 제거
+        
         aliases = [s.friend_alias for s in req.summaries if s.friend_alias]
-        if aliases:
-            for alias in aliases:
-                if alias in result.quarter_summary:
-                    result.quarter_summary = result.quarter_summary.replace(alias, "상대")
-                if alias in result.quarter_solution:
-                    result.quarter_solution = result.quarter_solution.replace(alias, "상대")
-                if alias in result.quarter_direction:
-                    result.quarter_direction = result.quarter_direction.replace(alias, "관계")
-                result.quarter_bullets = [
-                    b.replace(alias, "상대") for b in result.quarter_bullets
-                ]
+        result.quarter_summary = _replace_aliases(result.quarter_summary, aliases, "상대")
+        result.quarter_solution = _replace_aliases(result.quarter_solution, aliases, "상대")
+        result.quarter_direction = _replace_aliases(result.quarter_direction, aliases, "관계")
+        if result.quarter_bullets:
+            result.quarter_bullets = [_replace_aliases(b, aliases, "상대") for b in result.quarter_bullets]
+        
         result.safety = safety
         logger.info("response validated", extra={"request_id": rid})
         return result
