@@ -102,6 +102,14 @@ class SettlementRequest(BaseModel):
     friends: List[SettlementFriendContext] = Field(default_factory=list, max_length=50)
     context_hint: Optional[str] = Field(default=None, max_length=500, description="전체 힌트(선택)")
 
+class SettlementFriendMonthlySummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friend_alias: str = Field(..., min_length=1, max_length=40)
+    summary: str = Field(..., min_length=10, max_length=800)
+    bullets: List[str] = Field(default_factory=list, max_length=6)
+    solution: str = Field(..., min_length=10, max_length=800)
+    direction: str = Field(..., min_length=5, max_length=120)
+
 class SettlementResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: str = Field(default="v1-settlement")
@@ -110,6 +118,7 @@ class SettlementResponse(BaseModel):
     month_bullets: List[str] = Field(..., min_length=1, max_length=6, description="이번 달 요약 근거 불릿")
     month_solution: str = Field(..., min_length=20, max_length=1200)
     month_direction: str = Field(..., min_length=10, max_length=200, description="이번 달 방향성 한 줄")
+    month_friend_summaries: List[SettlementFriendMonthlySummary] = Field(default_factory=list, description="친구별 월별 정산 리스트")
     quarter_summary: str = Field(..., min_length=20, max_length=1200)
     quarter_solution: str = Field(..., min_length=20, max_length=1200)
     quarter_direction: str = Field(..., min_length=10, max_length=200, description="1분기 방향성 한 줄")

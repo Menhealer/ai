@@ -15,6 +15,7 @@ def build_settlement_escalation(_req: SettlementRequest, safety: SafetyResult) -
         ],
         month_solution="지금은 관계 분석보다 안전을 먼저 확보하는 것이 중요해요. 가까운 도움을 요청하세요.",
         month_direction="지금은 관계 분석보다 안전 확보를 우선하세요.",
+        month_friend_summaries=[],
         quarter_summary="현재는 관계 정리보다 안전이 최우선입니다.",
         quarter_solution="안전이 확보된 뒤에 관계 문제를 단계적으로 다루는 것이 좋아요.",
         quarter_direction="안전 확보 후 관계를 재정리하세요.",
