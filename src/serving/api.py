@@ -77,7 +77,6 @@ def _settlement_entries_text(req: SettlementRequest) -> str:
 def _replace_aliases(text: str, aliases: list[str], repl: str) -> str:
     if not text or not aliases:
         return text
-    # 길이 긴 별칭부터(겹치는 이름 대비) + 중복 제거
     uniq = sorted(set(a for a in aliases if a), key=len, reverse=True)
     if not uniq:
         return text
