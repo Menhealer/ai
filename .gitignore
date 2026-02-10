@@ -8,3 +8,4 @@ setting.txt
 plan.txt
 logs
 .pytest_cache
+src/prompts/
