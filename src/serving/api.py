@@ -106,7 +106,6 @@ async def summarize(req: FriendSummaryRequest, request: Request) -> FriendSummar
         # Path(f"{settings.LOG_DIR}/last_summary_raw.txt").write_text(raw, encoding="utf-8")
 
         result = parse_summary(raw)
-        result.safety = safety
         logger.info("response validated", extra={"request_id": rid})
         return result
     except Exception as e:
@@ -136,7 +135,6 @@ async def solution(req: FriendSolutionRequest, request: Request) -> FriendSoluti
         # Path(f"{settings.LOG_DIR}/last_solution_raw.txt").write_text(raw, encoding="utf-8")
 
         result = parse_solution(raw)
-        result.safety = safety
         logger.info("response validated", extra={"request_id": rid})
         return result
     except Exception as e:
