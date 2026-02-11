@@ -25,13 +25,12 @@ async def call_llm_summary(ctx: Dict[str, Any]) -> str:
     payload = _to_payload(ctx)
     user_content = json.dumps(payload, ensure_ascii=False)
     
-    url = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
-    headers = {"Authorization": f"Bearer {settings.LLM_API_KEY}"}
+    url = f"{settings.LLM_BASE_URL.rstrip('/')}/api/chat"
+    headers = {}
     body: Dict[str, Any] = {
         "model": settings.LLM_MODEL,
-        "temperature": settings.LLM_TEMPERATURE,
-        "max_tokens": settings.LLM_MAX_TOKENS,
-        "messages":[
+        "stream": False,
+        "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content}
         ]
@@ -42,4 +41,4 @@ async def call_llm_summary(ctx: Dict[str, Any]) -> str:
         resp.raise_for_status()
         data = resp.json()
     
-    return data["choices"][0]["message"]["content"]
+    return data["message"]["content"]

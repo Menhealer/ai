@@ -50,29 +50,29 @@ async def call_llm_settlement(ctx: Dict[str, Any]) -> str:
     payload = _json_safe(payload)
     user_content = json.dumps(payload, ensure_ascii=False)
 
-    url = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
-    headers = {"Authorization": f"Bearer {settings.LLM_API_KEY}"}
+    url = f"{settings.LLM_BASE_URL.rstrip('/')}/api/chat"
+    headers = {}
     body: Dict[str, Any] = {
         "model": settings.LLM_MODEL,
-        "temperature": settings.LLM_TEMPERATURE,
-        "max_tokens": settings.LLM_MAX_TOKENS,
-        "messages":[
+        "stream": False,
+        "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content}
         ]
     }
 
-    async with httpx.AsyncClient(timeout=settings.LLM_TIMEOUT_SEC) as client:
+    timeout = httpx.Timeout(connect=10.0, read=float(settings.LLM_TIMEOUT_SEC), write=60.0, pool=10.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.post(url, headers=headers, json=body)
         resp.raise_for_status()
         data = resp.json()
-        content = data["choices"][0]["message"]["content"]
+        content = data["message"]["content"]
 
         if _looks_truncated(content):
             resp2 = await client.post(url, headers=headers, json=body)
             resp2.raise_for_status()
             data2 = resp2.json()
-            content2 = data2["choices"][0]["message"]["content"]
+            content2 = data2["message"]["content"]
             if _looks_truncated(content2):
                 raise ValueError("LLM output seems truncated twice.")
             content = content2

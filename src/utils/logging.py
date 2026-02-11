@@ -36,4 +36,7 @@ class RequestIDFilter(logging.Filter):
 
 def  attach_request_id_filter() -> None:
     root = logging.getLogger()
-    root.addFilter(RequestIDFilter())
+    filt = RequestIDFilter()
+    root.addFilter(filt)
+    for h in root.handlers:
+        h.addFilter(filt)
