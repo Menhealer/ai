@@ -25,7 +25,6 @@ async def call_llm_best_worst(ctx: Dict[str, Any]) -> str:
     payload = _to_payload(ctx)
     user_content = json.dumps(payload, ensure_ascii=False)
 
-    # url = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
     url = f"{settings.LLM_BASE_URL.rstrip('/')}/api/chat"
     body: Dict[str, Any] = {
         "model": settings.LLM_MODEL,

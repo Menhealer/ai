@@ -130,5 +130,5 @@ class BestWorstItem(BaseModel):
 class BestWorstResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: str = Field(default="v1-friend-best-worst")
-    best_list: List[BestWorstItem] = Field(..., min_length=1, max_length=5)
-    worst_list: List[BestWorstItem] = Field(..., min_length=1, max_length=5)
+    best_list: List[BestWorstItem] = Field(..., min_length=1)
+    worst_list: List[BestWorstItem] = Field(..., min_length=1)
