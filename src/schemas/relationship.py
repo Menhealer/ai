@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Literal, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 ToneType = Literal["warm"]
 GoalType = Literal["understand", "resolve", "distance", "reconnect", "other"]
@@ -120,6 +120,22 @@ class BestWorstFriendInput(BaseModel):
 class BestWorstRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     friends: List[BestWorstFriendInput] = Field(..., min_length=1, max_length=100)
+
+    @field_validator('friends')
+    @classmethod
+    def check_duplicate_friends(cls, v: List[BestWorstFriendInput]) -> List[BestWorstFriendInput]:
+        aliases = [f.friend_alias for f in v]
+        seen = set()
+        duplicates = set()
+        for alias in aliases:
+            if alias in seen:
+                duplicates.add(alias)
+            seen.add(alias)
+        
+        if duplicates:
+            raise ValueError(f"중복된 친구 별칭이 있습니다: {', '.join(sorted(duplicates))}")
+        
+        return v
 
 class BestWorstItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
