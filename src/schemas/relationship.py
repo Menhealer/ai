@@ -106,3 +106,29 @@ class SettlementResponse(BaseModel):
     caution_body: str = Field(..., min_length=20, max_length=1200)
     caution_points: List[str] = Field(..., min_length=1, max_length=5, description="주의/워스트 근거 포인트")
     safety: SafetyResult = Field(default_factory=SafetyResult)
+
+# best/worst
+class BestWorstFriendInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friend_alias: str = Field(..., min_length=1, max_length=40)
+    summaries: List[SettlementMonthlyText] = Field(..., min_length=1, max_length=12)
+    meetings: int = Field(..., ge=0, le=200, description="만남 횟수")
+    rating_avg: float = Field(..., ge=0, le=5, description="평균 평가 점수(0~5)")
+    gift_given: int = Field(..., ge=0, le=200)
+    gift_received: int = Field(..., ge=0, le=200)
+
+class BestWorstRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friends: List[BestWorstFriendInput] = Field(..., min_length=1, max_length=100)
+
+class BestWorstItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    friend_alias: str = Field(..., min_length=1, max_length=40)
+    reason: str = Field(..., min_length=5, max_length=300)
+    suggestion: str = Field(..., min_length=5, max_length=120)
+
+class BestWorstResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: str = Field(default="v1-friend-best-worst")
+    best_list: List[BestWorstItem] = Field(..., min_length=1, max_length=5)
+    worst_list: List[BestWorstItem] = Field(..., min_length=1, max_length=5)

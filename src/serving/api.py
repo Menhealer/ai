@@ -14,7 +14,8 @@ from src.pipeline.extract import extract_summary, extract_solution, extract_sett
 from src.pipeline.generate_summary import call_llm_summary
 from src.pipeline.generate_solution import call_llm_solution
 from src.pipeline.generate_settlement import call_llm_settlement
-from src.pipeline.postprocess import parse_solution, parse_summary, parse_settlement
+from src.pipeline.generate_best_worst import call_llm_best_worst
+from src.pipeline.postprocess import parse_solution, parse_summary, parse_settlement, parse_best_worst
 from src.schemas.relationship import (
     FriendSolutionResponse,
     FriendSolutionRequest,
@@ -22,6 +23,8 @@ from src.schemas.relationship import (
     FriendSummaryResponse,
     SettlementRequest,
     SettlementResponse,
+    BestWorstRequest,
+    BestWorstResponse,
 )
 
 from src.config.settings import settings
@@ -173,3 +176,19 @@ async def settlement(req: SettlementRequest, request: Request) -> SettlementResp
     except Exception as e:
         logger.exception("settlement failed", extra={"request_id": rid})
         raise HTTPException(status_code=500, detail=f"AI settlement failed: {e}")
+
+@app.post("/best-worst", response_model=BestWorstResponse)
+async def best_worst(req: BestWorstRequest, request: Request) -> BestWorstResponse:
+    rid = request.state.request_id
+    logger.info("best-worst called", extra={"request_id": rid})
+
+    try:
+        raw = await call_llm_best_worst(req)
+        logger.info("llm response received", extra={"request_id": rid})
+
+        result = parse_best_worst(raw)
+        logger.info("response validated", extra={"request_id": rid})
+        return result
+    except Exception as e:
+        logger.exception("best-worst failed", extra={"request_id": rid})
+        raise HTTPException(status_code=500, detail=f"AI best-worst failed: {e}")
