@@ -4,7 +4,7 @@ import json, re
 from typing import Any, Dict
 from pydantic import ValidationError
 
-from src.schemas.relationship import FriendSummaryResponse, FriendSolutionResponse, SettlementResponse
+from src.schemas.relationship import FriendSummaryResponse, FriendSolutionResponse, SettlementResponse, BestWorstResponse
 
 def _extract_json_object(text: str) -> str:
     text = (text or "").strip()
@@ -85,3 +85,13 @@ def parse_settlement(raw: str) -> SettlementResponse:
         repaired = _basic_repair(json_text)
         data2: Dict[str, Any] = json.loads(repaired)
         return SettlementResponse.model_validate(data2)
+
+def parse_best_worst(raw: str) -> BestWorstResponse:
+    json_text = _extract_json_object(raw)
+    try:
+        data: Dict[str, Any] = json.loads(json_text)
+        return BestWorstResponse.model_validate(data)
+    except (json.JSONDecodeError, ValidationError):
+        repaired = _basic_repair(json_text)
+        data2: Dict[str, Any] = json.loads(repaired)
+        return BestWorstResponse.model_validate(data2)
